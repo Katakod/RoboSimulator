@@ -1,10 +1,11 @@
-﻿namespace RoboSimulator.Core.Interfaces
-{
-    public interface IRoom
-    {
-        int Depth { get; }
-        int Width { get; }
+﻿using RoboSimulator.Core.Model;
 
-        bool IsWithinBounds(int x, int y);
-    }
+namespace RoboSimulator.Core.Interfaces;
+
+public interface IRoom
+{
+    public Dimensions Dimensions { get; }
+
+    bool IsWithinBounds(int x, int y);
+
 }
