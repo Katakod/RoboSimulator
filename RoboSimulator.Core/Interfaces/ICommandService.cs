@@ -2,5 +2,5 @@
 
 public interface ICommandService
 {
-    void ProcessCommands();
+    void ProcessCommands(string commands);
 }
