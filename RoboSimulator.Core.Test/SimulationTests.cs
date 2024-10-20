@@ -23,7 +23,7 @@ public class SimulationTests
     {
         var nullLogger = NullLogger<CommandService>.Instance;
 
-        return new CommandService(nullLogger, robot);
+        return new CommandService(robot, nullLogger);
     }
 
     private static CommandService CreateCommandServiceWithRobotInMiddleOf5x5RoomWithDirection(Direction initialDirection)
@@ -63,12 +63,10 @@ public class SimulationTests
         var service = CreateCommandServiceWithRobot(new Room(5, 5), new PositionalDirection(1, 2, NORTH));      
 
         //Act
-        service.ProcessCommands("RF RFF RF RF");
-
-        var success = false;
-        var actualX = -1;
-        var actualY = -1;
-        var actualDirection = (Direction)99;
+        var (success, _) = service.ProcessCommands("RF RFF RF RF");
+        var actualX = service.Robot.PositionalDirection.X;
+        var actualY = service.Robot.PositionalDirection.Y;
+        var actualDirection = service.Robot.PositionalDirection.Direction ;
 
         //Assert        
         Assert.True(success);
@@ -87,11 +85,10 @@ public class SimulationTests
         var service = CreateCommandServiceWithRobot(new Room(5, 5), new PositionalDirection(0, 0, EAST));
 
         //Act
-        service.ProcessCommands("RF LFF LRF");
-        var success = false;
-        var actualX = -1;
-        var actualY = -1;
-        var actualDirection = (Direction)99;
+        var (success, _) = service.ProcessCommands("RF LFF LRF");
+        var actualX = service.Robot.PositionalDirection.X;
+        var actualY = service.Robot.PositionalDirection.Y;
+        var actualDirection = service.Robot.PositionalDirection.Direction;
 
         //Assert
         Assert.True(success);
@@ -110,12 +107,10 @@ public class SimulationTests
         var service = CreateCommandServiceWithRobot(new Room(3, 3), new PositionalDirection(2, 2, NORTH));
 
         //Act
-        service.ProcessCommands("FF LFF RF");
-
-        var success = true;
-        var actualX = -1;
-        var actualY = -1;
-        var actualDirection = (Direction)99;
+        var (success, _) = service.ProcessCommands("FF LFF RF");
+        var actualX = service.Robot.PositionalDirection.X;
+        var actualY = service.Robot.PositionalDirection.Y;
+        var actualDirection = service.Robot.PositionalDirection.Direction;
 
         //Assert        
         Assert.False(success);
@@ -137,12 +132,11 @@ public class SimulationTests
         //TODO: Dev test that we may wanna remove, other test cases will probably cover this
 
         //Arrange
-        var service = CreateCommandServiceWithRobot(new Room(5, 5), new PositionalDirection(0, 0, EAST));
-
+        var service = CreateCommandServiceWithRobot(new Room(5, 5), new PositionalDirection(0, 0, initialDirection));
 
         //Act
-        var actualDirection = initialDirection;
-        bool success = false;
+        var (success, _) = service.ProcessCommands(turnCommand);
+        var actualDirection = service.Robot.PositionalDirection.Direction;
 
         //Assert
         Assert.True(success);
@@ -161,10 +155,10 @@ public class SimulationTests
         var service = CreateCommandServiceWithRobotInMiddleOf5x5RoomWithDirection(initialDirection);
 
         //Act
-        int actualX = expectedX;
-        int actualY = expectedY;
-        var actualDirection = (Direction)99;
-        bool success = false;
+        var (success, _) = service.ProcessCommands(commands);
+        var actualX = service.Robot.PositionalDirection.X;
+        var actualY = service.Robot.PositionalDirection.Y;
+        var actualDirection = service.Robot.PositionalDirection.Direction;
 
         // Assert
         Assert.True(success);
@@ -183,10 +177,10 @@ public class SimulationTests
         var service = CreateCommandServiceWithRobotInMiddleOf5x5RoomWithDirection(initialDirection);
 
         //Act        
-        int actualX = -1;
-        int actualY = -1;        
-        var actualDirection = (Direction)99;
-        bool success = true;
+        var (success, _) = service.ProcessCommands(commands);
+        var actualX = service.Robot.PositionalDirection.X;
+        var actualY = service.Robot.PositionalDirection.Y;
+        var actualDirection = service.Robot.PositionalDirection.Direction;
 
         //Assert
         Assert.False(success);

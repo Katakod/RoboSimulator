@@ -18,6 +18,6 @@ public class Room : IRoom
 
     public bool IsWithinBounds(int x, int y)
     {
-        return x >= 1 && x <= Dimensions.Width && y >= 1 && y <= Dimensions.Depth;
+        return x >= 0 && x < Dimensions.Width && y >= 0 && y < Dimensions.Depth;
     }
 }

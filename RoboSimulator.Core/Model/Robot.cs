@@ -2,13 +2,12 @@
 
 using RoboSimulator.Core.Interfaces;
 
-public class Robot
+public class Robot : IRobot
 {
     public IRoom Room { get; }
     public PositionalDirection PositionalDirection { get; set; }
 
     private static readonly Direction[] _allDirections = (Direction[])Enum.GetValues(typeof(Direction));
-
 
     public Robot(PositionalDirection positionalDirection, IRoom room)
     {
@@ -39,7 +38,7 @@ public class Robot
     }
 
     public bool MoveForward()
-    {       
+    {
         switch (PositionalDirection.Direction)
         {
             case Direction.N: PositionalDirection.Y--; break;
@@ -48,7 +47,7 @@ public class Robot
             case Direction.W: PositionalDirection.X--; break;
         }
 
-        if (!Room.IsWithinBounds(PositionalDirection.X, PositionalDirection.Y))
+        if (Room.IsWithinBounds(PositionalDirection.X, PositionalDirection.Y))
             return true;
         else
             return false;

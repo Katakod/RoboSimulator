@@ -12,4 +12,14 @@ public class PositionalDirection
         Direction = direction;
     }
 
+    public override string ToString()
+    {
+        return $"{X} {Y} {Direction}";
+    }
+
+    public string ToPositionString()
+    {
+        return $"{X} {Y}";
+    }
+
 }

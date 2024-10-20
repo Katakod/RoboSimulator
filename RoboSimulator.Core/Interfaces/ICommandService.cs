@@ -2,5 +2,7 @@
 
 public interface ICommandService
 {
-    void ProcessCommands(string commands);
+    IRobot Robot { get; }
+
+    (bool success, string resultMessage) ProcessCommands(string commands);
 }
