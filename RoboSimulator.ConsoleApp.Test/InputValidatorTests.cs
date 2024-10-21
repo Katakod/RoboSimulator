@@ -6,32 +6,30 @@ public class InputValidatorTests
 {    
     [Theory]
     [InlineData("5 5", 5, 5)]
-    public void ValidateRoomInput_ValidInput_ShouldReturnDimensions(string input, int expectedWidth, int expectedHeight)
+    public void ValidateRoomInput_ValidInput_ShouldReturnCorrectDimensions(string input, int expectedWidth, int expectedHeight)
     {
-        //Arrange
-
         //Act
-        int actualWidth = 0;
-        int actualHeight = 0;
+        var (actualDimensions, _) = InputValidator.ValidateRoomDimensionsInput(input);
 
         //Assert
-        Assert.Equal(expectedWidth, actualWidth);
-        Assert.Equal(expectedHeight, actualHeight);
+        Assert.NotNull(actualDimensions);
+        Assert.Equal(expectedWidth, actualDimensions.Width);
+        Assert.Equal(expectedHeight, actualDimensions.Depth);
 
     }
 
     [Theory]
-    [InlineData("invalid input")]    
-    public void ValidateRoomInput_InvalidInput_ShouldReturnNull(string input)
+    [InlineData("invalid input")]
+    [InlineData("0 0")]
+    public void ValidateRoomInput_InvalidInput_ShouldReturnNullWithErrorMessage(string input)
     {
-        //Arrange
-
         //Act
-        var actual = input;
+        var (actualDimensions, validationMessage) = InputValidator.ValidateRoomDimensionsInput(input);
 
         //Assert
-        Assert.Null(actual);
-    }
+        Assert.Null(actualDimensions);
+        Assert.Contains("invalid", (validationMessage ?? "").ToLower());
+    }   
 
     [Theory]
     [InlineData("1 2 N", 1, 2, "N")]    

@@ -49,7 +49,7 @@ public class CommandService : ICommandService
         }
     }
 
-    private static void ValidateCommands(string commands)
+    public static void ValidateCommands(string commands)
     {        
         if (string.IsNullOrEmpty(commands))
             throw new ArgumentNullException(nameof(commands), $"Invalid input - no commands found.");
