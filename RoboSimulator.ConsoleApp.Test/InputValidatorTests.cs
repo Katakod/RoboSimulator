@@ -1,4 +1,5 @@
-﻿using Xunit;
+﻿using RoboSimulator.Core.Model;
+using Xunit;
 
 namespace RoboSimulator.ConsoleApp.Tests;
 
@@ -32,33 +33,38 @@ public class InputValidatorTests
     }   
 
     [Theory]
-    [InlineData("1 2 N", 1, 2, "N")]    
-    public void ValidateRobotInput_ValidInput_ShouldReturnPositionAndDirection(string input, int expectedX, int expectedY, string expectedDirection)
+    [InlineData("1 2 N", 1, 2, Direction.N)]
+    [InlineData("0 0 E", 0, 0, Direction.E)]
+    public void ValidateRobotInput_ValidInput_ShouldReturnCorrectPositionalDirection(string input, int expectedX, int expectedY, Direction expectedDirection)
     {
         //Arrange
+        var testRoom = new Room(5, 5);
 
         //Act
-        int actualX = 0;
-        int actualY = 0;
-        string actualDirection = null;
+        var (actualStartPosition, _) = InputValidator.ValidateRobotPositionInput(input, testRoom);
 
         //Assert
-        Assert.Equal(expectedX, actualX);
-        Assert.Equal(expectedY, actualY);
-        Assert.Equal(expectedDirection, actualDirection);
+        Assert.NotNull(actualStartPosition);
+        Assert.Equal(expectedX, actualStartPosition.X);
+        Assert.Equal(expectedY, actualStartPosition.Y);
+        Assert.Equal(expectedDirection, actualStartPosition.Direction);
     }
 
     [Theory]
     [InlineData("1 2 InvalidDirection")]
-    public void ValidateRobotInput_InvalidInput_ShouldReturnNull(string input)
+    [InlineData("o 0 N")]
+    [InlineData("-1 0 N")]
+    public void ValidateRobotInput_InvalidSartPositionInRoom5x5_ShouldReturnNullWithErrorMessage(string input)
     {
         //Arrange
+        var testRoom = new Room(5, 5);
 
         //Act
-        var actual = input;
+        var (actualStartPosition, validationMessage) = InputValidator.ValidateRobotPositionInput(input, testRoom);               
 
         //Assert
-        Assert.Null(actual);
+        Assert.Null(actualStartPosition);
+        Assert.Contains("invalid", (validationMessage ?? "").ToLower());
     }
 
     [Theory]

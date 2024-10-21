@@ -1,4 +1,5 @@
 ﻿
+using RoboSimulator.Core.Interfaces;
 using RoboSimulator.Core.Model;
 
 namespace RoboSimulator.ConsoleApp
@@ -23,10 +24,46 @@ namespace RoboSimulator.ConsoleApp
             return (null, "Invalid Room dimensions. Enter valid numbers for width and height.");
         }
 
-        public static (PositionalDirection? startPosition, string resultMessage) ValidateRobotInput(string input)
+        public static (PositionalDirection? startPosition, string resultMessage) ValidateRobotPositionInput(string input, Room room)
         {
-            throw new NotImplementedException();
+            ArgumentNullException.ThrowIfNull(room, nameof(room));
+
+            var parts = input.Split(' ');
+            if (parts.Length == 3 &&
+                int.TryParse(parts[0], out int x) &&
+                int.TryParse(parts[1], out int y) &&
+                TryParseDirection(parts[2], out Direction direction))
+            {
+                var startPosition = new PositionalDirection(x, y, direction);
+
+                if (room.IsWithinBounds(startPosition.X, startPosition.Y))
+                {
+                    return (startPosition, $"Valid Robot position entered for Room ({room.Dimensions}): {startPosition}.");
+                }
+                else
+                {
+                    return (null, $"Invalid robot starting position. Position ({startPosition.ToPositionString()}) is out of bounds for this {room.Dimensions} Room.");
+                }
+            }
+
+            return (null, "Invalid robot starting position. Enter valid number for x,y and a direction (N, E, S, W).");
         }
+
+        public static bool TryParseDirection(string input, out Direction direction)
+        {
+            input = (input ?? "").ToUpper();
+
+            if (Enum.TryParse(input, out Direction parsedDirection) &&
+                Enum.IsDefined(typeof(Direction), parsedDirection))
+            {
+                direction = parsedDirection;
+                return true;
+            }
+
+            direction = default;
+            return false;
+        }
+
 
         public static (bool isValidCommand, string resultMessage) ValidateCommandsInput(string input)
         {
