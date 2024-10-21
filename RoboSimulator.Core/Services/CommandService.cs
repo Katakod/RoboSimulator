@@ -66,7 +66,7 @@ public class CommandService : ICommandService
 
     private (bool, string) ReportMoveResult(PositionalDirection positionalDirection)
     {
-        var message = $"Report - {positionalDirection}.";
+        var message = $"Report: {positionalDirection}.";
         _logger.LogInformation("{Message}", message);
         return (true, message);
     }

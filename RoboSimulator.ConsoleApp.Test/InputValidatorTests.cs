@@ -7,7 +7,8 @@ public class InputValidatorTests
 {    
     [Theory]
     [InlineData("5 5", 5, 5)]
-    public void ValidateRoomInput_ValidInput_ShouldReturnCorrectDimensions(string input, int expectedWidth, int expectedHeight)
+    [InlineData("1 1 ", 1, 1)]
+    public void ValidateRoomInput_ValidInput_ShouldReturnCorrectDimensions(string input, int expectedWidth, int expectedDepth)
     {
         //Act
         var (actualDimensions, _) = InputValidator.ValidateRoomDimensionsInput(input);
@@ -15,7 +16,7 @@ public class InputValidatorTests
         //Assert
         Assert.NotNull(actualDimensions);
         Assert.Equal(expectedWidth, actualDimensions.Width);
-        Assert.Equal(expectedHeight, actualDimensions.Depth);
+        Assert.Equal(expectedDepth, actualDimensions.Depth);
 
     }
 
@@ -34,7 +35,7 @@ public class InputValidatorTests
 
     [Theory]
     [InlineData("1 2 N", 1, 2, Direction.N)]
-    [InlineData("0 0 E", 0, 0, Direction.E)]
+    [InlineData("0 0 E ", 0, 0, Direction.E)]
     public void ValidateRobotInput_ValidInput_ShouldReturnCorrectPositionalDirection(string input, int expectedX, int expectedY, Direction expectedDirection)
     {
         //Arrange
@@ -68,30 +69,28 @@ public class InputValidatorTests
     }
 
     [Theory]
-    [InlineData("FFLR")]
+    [InlineData("RFLF")]
+    [InlineData("FF LR ")]
     public void ValidateCommands_ValidInput_ShouldReturnTrue(string input)
     {
         //Arrange
 
         //Act
-        var success = false;
+        var (isValidCommand, _) = InputValidator.ValidateCommandsInput(input);
 
         //Assert
-        Assert.True(success);
+        Assert.True(isValidCommand);
     }
 
     [Theory]
-    [InlineData("FFLRX")]    
+    [InlineData("FFLRX")]
+    [InlineData("FF LR X")]
     public void ValidateCommands_InvalidInput_ShouldReturnFalse(string input)
     {
-        //Arrange
-
         //Act
+        var (isValidCommand, _) = InputValidator.ValidateCommandsInput(input);
 
         //Assert
-        var success = true;
-
-        //Assert
-        Assert.False(success);
+        Assert.False(isValidCommand);
     }
 }

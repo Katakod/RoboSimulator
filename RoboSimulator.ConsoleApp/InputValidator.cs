@@ -8,7 +8,7 @@ namespace RoboSimulator.ConsoleApp
     {
         public static (Dimensions? dimensions, string resultMessage) ValidateRoomDimensionsInput(string input)
         {
-            var parts = (input ?? "").Split(' ');
+            var parts = (input ?? "").TrimEnd().Split(' ');
 
             if (parts.Length == 2 && 
                 int.TryParse(parts[0], out int width) && 
@@ -21,14 +21,14 @@ namespace RoboSimulator.ConsoleApp
                 }
             }
 
-            return (null, "Invalid Room dimensions. Enter valid numbers for width and height.");
+            return (null, "Invalid Room dimensions. Enter valid numbers for width and depth.");
         }
 
         public static (PositionalDirection? startPosition, string resultMessage) ValidateRobotPositionInput(string input, Room room)
         {
             ArgumentNullException.ThrowIfNull(room, nameof(room));
 
-            var parts = input.Split(' ');
+            var parts = (input ?? "").TrimEnd().Split(' ');
             if (parts.Length == 3 &&
                 int.TryParse(parts[0], out int x) &&
                 int.TryParse(parts[1], out int y) &&
@@ -64,10 +64,16 @@ namespace RoboSimulator.ConsoleApp
             return false;
         }
 
-
-        public static (bool isValidCommand, string resultMessage) ValidateCommandsInput(string input)
+        public static (bool isValid, string resultMessage) ValidateCommandsInput(string input)
         {
-            throw new NotImplementedException();
+            input = (input ?? "").Replace(" ", "");
+
+            if (input.All("FLR".Contains))
+            {
+                return (true, "Valid commands entered."); ;
+            }
+
+            return (false, "Invalid commands entered. Only F, L, R (and space) are allowed.");
         }
 
 
