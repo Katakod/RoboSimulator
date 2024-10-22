@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using RoboSimulator.Core.DTOs;
 using RoboSimulator.Core.Interfaces;
 using RoboSimulator.Core.Model;
 

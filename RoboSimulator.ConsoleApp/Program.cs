@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using RoboSimulator.Core.DTOs;
 using RoboSimulator.Core.Interfaces;
 using RoboSimulator.Core.Model;
-using RoboSimulator.Core.Services;
 using System;
 
 namespace RoboSimulator.ConsoleApp
@@ -12,7 +12,7 @@ namespace RoboSimulator.ConsoleApp
         private static ServiceProvider? _serviceProvider;
         private static ILogger<Program>? _logger;
         private const int MAXIMUM_BAD_INPUT_DEFAULT = 3; // Users may try 3 times for each input request 
-
+               
         private static void Main()
         {
             try
@@ -184,7 +184,7 @@ namespace RoboSimulator.ConsoleApp
         private static void ExitAppWithException(string errorMessage, Exception ex)
         {
             Console.WriteLine(errorMessage);
-            _logger!.LogError(ex, errorMessage);
+            _logger!.LogError(ex, errorMessage);            
             Environment.Exit(1);
         }
 
@@ -193,7 +193,7 @@ namespace RoboSimulator.ConsoleApp
             args.Cancel = true;
             var message = "RoboSimulator.ConsoleApp exit...User pressed Ctrl+C.";
             Console.WriteLine(message);
-            _logger!.LogError(message);
+            _logger!.LogError(message);            
             Environment.Exit(0);
         }
     }

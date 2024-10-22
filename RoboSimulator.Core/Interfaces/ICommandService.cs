@@ -1,4 +1,4 @@
-﻿using RoboSimulator.Core.Services;
+﻿using RoboSimulator.Core.DTOs;
 
 namespace RoboSimulator.Core.Interfaces;
 
