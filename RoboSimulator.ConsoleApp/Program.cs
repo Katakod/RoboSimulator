@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using RoboSimulator.Core.Interfaces;
 using RoboSimulator.Core.Model;
 using RoboSimulator.Core.Services;
+using System;
 
 namespace RoboSimulator.ConsoleApp
 {
@@ -12,7 +13,7 @@ namespace RoboSimulator.ConsoleApp
         private static ILogger<Program>? _logger;
         private const int MAXIMUM_BAD_INPUT_DEFAULT = 3; // Users may try 3 times for each input request 
 
-        private static void Main(string[] args)
+        private static void Main()
         {
             try
             {
@@ -20,8 +21,8 @@ namespace RoboSimulator.ConsoleApp
                 _serviceProvider = ServiceConfigurator.SetupConfiguration();
                 _logger = _serviceProvider.GetRequiredService<ILogger<Program>>();
 
-            LogInfo("RoboSimulator.ConsoleApp start...");
-            Console.WriteLine(" ***** Welcome to the Robo Simulator! (Press Ctrl+C to exit) *****");
+                LogInfo("RoboSimulator.ConsoleApp start...");
+                Console.WriteLine(" ***** Welcome to the Robo Simulator! (Press Ctrl+C to exit) *****");
 
                 Console.CancelKeyPress += new ConsoleCancelEventHandler(OnExit!);
 
@@ -42,14 +43,14 @@ namespace RoboSimulator.ConsoleApp
                     if (commands == null)
                         ExitAppWithError("ERROR: Bad input. No valid sequence of movement commands in input.");
 
-                    var (success, resultMessage) = ExecuteRobotSimulation(robot!, commands!);
+                    var result = ExecuteRobotSimulation(robot!, commands!);
 
-                    HandleSimulationResult(success, resultMessage);
+                    HandleSimulationResult(result);
                 }
             }
             catch (Exception ex)
             {
-                throw;
+                ExitAppWithException($"Simulation failed due to an unexpected error: {ex.Message}", ex);
             }
             finally
             {
@@ -141,24 +142,23 @@ namespace RoboSimulator.ConsoleApp
             return validInput!;            
         }
 
-        private static (bool success, string resultMessage) ExecuteRobotSimulation(IRobot robot, string commands)
+        private static CommandResultDto ExecuteRobotSimulation(IRobot robot, string commands)
         {
-            var logger = _serviceProvider!.GetRequiredService<ILogger<CommandService>>();
-            var simulation = new CommandService(robot, logger);
-            
-            return simulation.ProcessCommands(commands);
+            var commandService = _serviceProvider!.GetRequiredService<ICommandService>();
+
+            return commandService.ProcessCommands(robot, commands);
         }
 
 
-        private static void HandleSimulationResult(bool success, string resultMessage)
+        private static void HandleSimulationResult(CommandResultDto result)
         {            
-            if (success)
+            if (result.Success)
             {
-                Console.WriteLine(resultMessage);
+                Console.WriteLine(result.Message);
             }
             else
             {
-                Console.WriteLine($"ERROR: {resultMessage}");
+                Console.WriteLine($"ERROR: {result.Message}");
                 Environment.Exit(1);
             }            
         }
@@ -178,6 +178,13 @@ namespace RoboSimulator.ConsoleApp
         {
             Console.WriteLine(errorMessage);
             _logger!.LogError(errorMessage);
+            Environment.Exit(1);
+        }
+
+        private static void ExitAppWithException(string errorMessage, Exception ex)
+        {
+            Console.WriteLine(errorMessage);
+            _logger!.LogError(ex, errorMessage);
             Environment.Exit(1);
         }
 

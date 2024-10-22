@@ -17,9 +17,7 @@ namespace RoboSimulator.ConsoleApp
                     loggingBuilder.ClearProviders();
                     loggingBuilder.AddNLog();
                 })
-                .AddSingleton<ICommandService, CommandService>()
-                .AddSingleton<IRobot, Robot>()
-                //.AddSingleton<InputValidator>()
+                .AddSingleton<ICommandService, CommandService>()                
                 .BuildServiceProvider();
         }
     }

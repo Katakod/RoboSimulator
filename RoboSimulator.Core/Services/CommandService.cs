@@ -6,20 +6,19 @@ namespace RoboSimulator.Core.Services;
 
 public class CommandService : ICommandService
 {
-    public IRobot Robot { get; }
-
     private readonly ILogger<CommandService> _logger;
 
-    public CommandService(IRobot robot, ILogger<CommandService> logger)
-    {
-        Robot = robot ?? throw new ArgumentNullException(nameof(robot));
+    public CommandService(ILogger<CommandService> logger)
+    {        
         _logger = logger;
     }
 
-    public (bool success, string resultMessage) ProcessCommands(string commands)
+    public CommandResultDto ProcessCommands(IRobot robot, string commands)
     {
         try
         {
+            ArgumentNullException.ThrowIfNull(robot, nameof(robot));
+
             commands = (commands ?? "").Replace(" ", ""); //Allow spaces in command sequence for a more friendly usage
             ValidateCommands(commands);
 
@@ -28,23 +27,23 @@ public class CommandService : ICommandService
                 switch (command)
                 {
                     case 'F':
-                        if (!Robot.MoveForward())
-                            return ReportOutOfBoundsResult(Robot.PositionalDirection);
+                        if (!robot.MoveForward())
+                            return ReportOutOfBoundsResult(robot.PositionalDirection);
                         break;                        
                     case 'L':
-                        Robot.TurnLeft();
+                        robot.TurnLeft();
                         break;
                     case 'R':
-                        Robot.TurnRight();
+                        robot.TurnRight();
                         break;
                 }
             }
 
-            return ReportMoveResult(Robot.PositionalDirection);
+            return ReportSuccessResult(robot.PositionalDirection);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, ex.Message);
+            _logger.LogError(ex, "{Message}", ex.Message);
             throw;  //TODO: We might wanna return failure instead of throwing exceptions, or treat ValidateCommands different from unexpected errors..
         }
     }
@@ -57,17 +56,29 @@ public class CommandService : ICommandService
             throw new ArgumentException($"Invalid input - only F, L and R is allowed in commands sequence.", nameof(commands));
     }
     
-    private (bool, string) ReportOutOfBoundsResult(PositionalDirection positionalDirection)
+    private CommandResultDto ReportOutOfBoundsResult(PositionalDirection positionalDirection)
     {
         var message = $"Out of bounds at {positionalDirection.ToPositionString()}.";        
         _logger.LogInformation("{Message}", message);
-        return (false, message);
+
+        return ReportCommandResult(false, message, positionalDirection);
     }
 
-    private (bool, string) ReportMoveResult(PositionalDirection positionalDirection)
+    private CommandResultDto ReportSuccessResult(PositionalDirection positionalDirection)
     {
         var message = $"Report: {positionalDirection}.";
+        return ReportCommandResult(true, message, positionalDirection);
+    }
+
+    private CommandResultDto ReportCommandResult(bool success, string message, PositionalDirection positionalDirection)
+    {
         _logger.LogInformation("{Message}", message);
-        return (true, message);
+
+        return new CommandResultDto
+        {
+            Success = success,
+            Message = message,
+            UpdatedPositionalDirection = positionalDirection
+        };
     }
 }

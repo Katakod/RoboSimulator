@@ -4,7 +4,7 @@ using RoboSimulator.Core.Model;
 
 namespace RoboSimulator.ConsoleApp
 {
-    public class InputValidator
+    public static class InputValidator
     {
         public static (Dimensions? dimensions, string resultMessage) ValidateRoomDimensionsInput(string input)
         {

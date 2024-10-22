@@ -12,21 +12,21 @@ public class SimulationTests
     private const Direction SOUTH = Direction.S;
     private const Direction WEST = Direction.W;
 
-    private static CommandService CreateCommandServiceWithRobot(Room room, PositionalDirection positionalDirection)
+    private static Robot CreateRobot(Room room, PositionalDirection positionalDirection)
     {
         var robot = new Robot(positionalDirection, room);
 
-        return CreateCommandService(robot);
+        return robot;
     }
 
-    private static CommandService CreateCommandService(Robot robot)
+    private static CommandService CreateCommandServiceForTests()
     {
         var nullLogger = NullLogger<CommandService>.Instance;
 
-        return new CommandService(robot, nullLogger);
+        return new CommandService(nullLogger);
     }
 
-    private static CommandService CreateCommandServiceWithRobotInMiddleOf5x5RoomWithDirection(Direction initialDirection)
+    private static Robot CreateRobotInMiddleOf5x5RoomWithDirection(Direction initialDirection)
     {
         /* Below is a 5 x 5 Test Room visualization of x,y points with a middle of 2,2. 
            A complex route trace for moving from middle to north boundary, then to each corner 
@@ -48,8 +48,16 @@ public class SimulationTests
         var positionalDirection = new PositionalDirection(2, 2, initialDirection);
         var robot = new Robot(positionalDirection, room);
 
-        return CreateCommandService(robot);
+        return robot;
     }
+    private static void AssertProcessCommandsMoveResult(int expectedX, int expectedY, Direction expectedDirection, PositionalDirection actualPositionalDirection)
+    {
+        Assert.Equal(expectedX, actualPositionalDirection.X);
+        Assert.Equal(expectedY, actualPositionalDirection.Y);
+        Assert.Equal(expectedDirection, actualPositionalDirection.Direction);
+    }
+
+    
 
     [Fact]
     public void RobotMove_AssignmentCase1_ShouldSucceed_WithCorrectPositionalDirection()
@@ -60,17 +68,15 @@ public class SimulationTests
         //Report: 1 3 N;
 
         //Arrange        
-        var service = CreateCommandServiceWithRobot(new Room(5, 5), new PositionalDirection(1, 2, NORTH));      
+        var service = CreateCommandServiceForTests();
+        var robot = CreateRobot(new Room(5, 5), new PositionalDirection(1, 2, NORTH));      
 
         //Act
-        var (success, _) = service.ProcessCommands("RF RFF RF RF");
-        var actualX = service.Robot.PositionalDirection.X;
-        var actualY = service.Robot.PositionalDirection.Y;
-        var actualDirection = service.Robot.PositionalDirection.Direction ;
+        var result = service.ProcessCommands(robot,"RF RFF RF RF");
 
         //Assert        
-        Assert.True(success);
-        AssertProcessCommandsMoveResult(1, 3, NORTH, actualX, actualY, actualDirection);
+        Assert.True(result.Success);
+        AssertProcessCommandsMoveResult(1, 3, NORTH, result.UpdatedPositionalDirection!);
     }
 
     [Fact]
@@ -82,17 +88,15 @@ public class SimulationTests
         //Report: 3 1 E
 
         //Arrange        
-        var service = CreateCommandServiceWithRobot(new Room(5, 5), new PositionalDirection(0, 0, EAST));
+        var service = CreateCommandServiceForTests();
+        var robot = CreateRobot(new Room(5, 5), new PositionalDirection(0, 0, EAST));
 
         //Act
-        var (success, _) = service.ProcessCommands("RF LFF LRF");
-        var actualX = service.Robot.PositionalDirection.X;
-        var actualY = service.Robot.PositionalDirection.Y;
-        var actualDirection = service.Robot.PositionalDirection.Direction;
+        var result = service.ProcessCommands(robot, "RF LFF LRF");        
 
         //Assert
-        Assert.True(success);
-        AssertProcessCommandsMoveResult(3, 1, EAST, actualX, actualY, actualDirection);
+        Assert.True(result.Success);
+        AssertProcessCommandsMoveResult(3, 1, EAST, result.UpdatedPositionalDirection!);
     }
 
     [Fact]
@@ -104,17 +108,15 @@ public class SimulationTests
         //ERROR: Out of bounds at 0 - 1
 
         //Arrange        
-        var service = CreateCommandServiceWithRobot(new Room(3, 3), new PositionalDirection(2, 2, NORTH));
+        var service = CreateCommandServiceForTests();
+        var robot = CreateRobot(new Room(3, 3), new PositionalDirection(2, 2, NORTH));
 
         //Act
-        var (success, _) = service.ProcessCommands("FF LFF RF");
-        var actualX = service.Robot.PositionalDirection.X;
-        var actualY = service.Robot.PositionalDirection.Y;
-        var actualDirection = service.Robot.PositionalDirection.Direction;
+        var result = service.ProcessCommands(robot, "FF LFF RF");        
 
         //Assert        
-        Assert.False(success);
-        AssertProcessCommandsMoveResult(0, -1, NORTH, actualX, actualY, actualDirection);
+        Assert.False(result.Success);
+        AssertProcessCommandsMoveResult(0, -1, NORTH, result.UpdatedPositionalDirection!);
     }
 
     [Theory]
@@ -132,15 +134,15 @@ public class SimulationTests
         //TODO: Dev test that we may wanna remove, other test cases will probably cover this
 
         //Arrange
-        var service = CreateCommandServiceWithRobot(new Room(5, 5), new PositionalDirection(0, 0, initialDirection));
+        var service = CreateCommandServiceForTests();
+        var robot = CreateRobotInMiddleOf5x5RoomWithDirection(initialDirection);
 
         //Act
-        var (success, _) = service.ProcessCommands(turnCommand);
-        var actualDirection = service.Robot.PositionalDirection.Direction;
+        var result = service.ProcessCommands(robot,turnCommand);
 
         //Assert
-        Assert.True(success);
-        Assert.Equal(expectedDirection, actualDirection);        
+        Assert.True(result.Success);
+        Assert.Equal(expectedDirection, result.UpdatedPositionalDirection!.Direction);        
     }
 
     [Theory]
@@ -152,17 +154,15 @@ public class SimulationTests
         Direction initialDirection, string commands, int expectedX, int expectedY, Direction expectedDirection)
     {
         //Arrange
-        var service = CreateCommandServiceWithRobotInMiddleOf5x5RoomWithDirection(initialDirection);
+        var service = CreateCommandServiceForTests();
+        var robot = CreateRobotInMiddleOf5x5RoomWithDirection(initialDirection);
 
         //Act
-        var (success, _) = service.ProcessCommands(commands);
-        var actualX = service.Robot.PositionalDirection.X;
-        var actualY = service.Robot.PositionalDirection.Y;
-        var actualDirection = service.Robot.PositionalDirection.Direction;
+        var result = service.ProcessCommands(robot,commands);
 
         // Assert
-        Assert.True(success);
-        AssertProcessCommandsMoveResult(expectedX, expectedY, expectedDirection, actualX, actualY, actualDirection);
+        Assert.True(result.Success);
+        AssertProcessCommandsMoveResult(expectedX, expectedY, expectedDirection, result.UpdatedPositionalDirection!);
     }
 
     [Theory]
@@ -174,23 +174,14 @@ public class SimulationTests
         Direction initialDirection, string commands, int expectedX, int expectedY, Direction expectedDirection)
     {
         //Arrange
-        var service = CreateCommandServiceWithRobotInMiddleOf5x5RoomWithDirection(initialDirection);
+        var service = CreateCommandServiceForTests();
+        var robot = CreateRobotInMiddleOf5x5RoomWithDirection(initialDirection);
 
         //Act        
-        var (success, _) = service.ProcessCommands(commands);
-        var actualX = service.Robot.PositionalDirection.X;
-        var actualY = service.Robot.PositionalDirection.Y;
-        var actualDirection = service.Robot.PositionalDirection.Direction;
+        var result = service.ProcessCommands(robot, commands);
 
         //Assert
-        Assert.False(success);
-        AssertProcessCommandsMoveResult(expectedX, expectedY, expectedDirection, actualX, actualY, actualDirection);
-    }
-
-    private static void AssertProcessCommandsMoveResult(int expectedX, int expectedY, Direction expectedDirection, int actualX, int actualY, Direction actualDirection)
-    {        
-        Assert.Equal(expectedX, actualX);
-        Assert.Equal(expectedY, actualY);
-        Assert.Equal(expectedDirection, actualDirection);
+        Assert.False(result.Success);
+        AssertProcessCommandsMoveResult(expectedX, expectedY, expectedDirection, result.UpdatedPositionalDirection!);
     }
 }
