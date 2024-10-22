@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging.Abstractions;
+using RoboSimulator.Core.Infrastructure;
 using RoboSimulator.Core.Model;
 using RoboSimulator.Core.Services;
 using Xunit;
@@ -22,8 +23,9 @@ public class SimulationTests
     private static CommandService CreateCommandServiceForTests()
     {
         var nullLogger = NullLogger<CommandService>.Instance;
+        var exceptionHandler = new SimpleExceptionHandler(NullLogger<SimpleExceptionHandler>.Instance);
 
-        return new CommandService(nullLogger);
+        return new CommandService(nullLogger, exceptionHandler);
     }
 
     private static Robot CreateRobotInMiddleOf5x5RoomWithDirection(Direction initialDirection)
