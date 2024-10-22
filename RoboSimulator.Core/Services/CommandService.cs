@@ -7,10 +7,12 @@ namespace RoboSimulator.Core.Services;
 public class CommandService : ICommandService
 {
     private readonly ILogger<CommandService> _logger;
+    private readonly IExceptionHandler _exceptionHandler;
 
-    public CommandService(ILogger<CommandService> logger)
+    public CommandService(ILogger<CommandService> logger, IExceptionHandler exceptionHandler)
     {        
         _logger = logger;
+        _exceptionHandler = exceptionHandler;
     }
 
     public CommandResultDto ProcessCommands(IRobot robot, string commands)
@@ -42,8 +44,8 @@ public class CommandService : ICommandService
             return ReportSuccessResult(robot.PositionalDirection);
         }
         catch (Exception ex)
-        {
-            _logger.LogError(ex, "{Message}", ex.Message);
+        {            
+            _exceptionHandler.Handle(ex);
             throw;  //TODO: We might wanna return failure instead of throwing exceptions, or treat ValidateCommands different from unexpected errors..
         }
     }

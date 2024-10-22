@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
+using RoboSimulator.Core.Infrastructure;
 using RoboSimulator.Core.Interfaces;
-using RoboSimulator.Core.Model;
 using RoboSimulator.Core.Services;
 
 namespace RoboSimulator.ConsoleApp
@@ -17,7 +17,8 @@ namespace RoboSimulator.ConsoleApp
                     loggingBuilder.ClearProviders();
                     loggingBuilder.AddNLog();
                 })
-                .AddSingleton<ICommandService, CommandService>()                
+                .AddSingleton<ICommandService, CommandService>()
+                .AddSingleton<IExceptionHandler, SimpleExceptionHandler>()
                 .BuildServiceProvider();
         }
     }
