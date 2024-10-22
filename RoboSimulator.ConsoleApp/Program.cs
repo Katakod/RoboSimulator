@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using RoboSimulator.Core.DTOs;
 using RoboSimulator.Core.Interfaces;
 using RoboSimulator.Core.Model;
-using System;
+using System.Text;
 
 namespace RoboSimulator.ConsoleApp
 {
@@ -12,7 +12,7 @@ namespace RoboSimulator.ConsoleApp
         private static ServiceProvider? _serviceProvider;
         private static ILogger<Program>? _logger;
         private const int MAXIMUM_BAD_INPUT_DEFAULT = 3; // Users may try 3 times for each input request 
-               
+
         private static void Main()
         {
             try
@@ -35,8 +35,8 @@ namespace RoboSimulator.ConsoleApp
                     ExitAppWithError("ERROR: Bad input. Robot could not be created from input.");
 
 
-                Console.WriteLine("Enter Robot commands to move it in the room.");
-                Console.WriteLine("F=Forward, L=Turn Left, R=Turn Right. Example: 'R FF L F' (spaces will be ignored).");
+                Console.WriteLine("\nEnter Robot commands to move it inside the room. For example: 'F LF R FF' \n" +
+                                    "F=Forward, L=Turn Left, R=Turn Right. Spaces will be ignored.");
                 while (true)
                 {
                     var commands = TryToGetCommandsFromInput();
@@ -50,7 +50,7 @@ namespace RoboSimulator.ConsoleApp
             }
             catch (Exception ex)
             {
-                ExitAppWithException($"Simulation failed due to an unexpected error: {ex.Message}", ex);
+                ExitAppWithError($"ERROR: Simulation failed due to an unexpected error: {ex.Message}", ex);
             }
             finally
             {
@@ -63,7 +63,7 @@ namespace RoboSimulator.ConsoleApp
             Room? room = null;
             int inputCount = 1;
 
-            Console.WriteLine("Enter Room dimensions (width depth) with a space between.");
+            Console.WriteLine("\nEnter Room dimensions (width depth) with a space between.");
 
             while (room == null && inputCount <= MAXIMUM_BAD_INPUT_DEFAULT)
             {
@@ -92,7 +92,7 @@ namespace RoboSimulator.ConsoleApp
             IRobot? robot = null;
             int inputCount = 1;
 
-            Console.WriteLine("Enter Robot start values (x y direction) with spaces between.");
+            Console.WriteLine("\nEnter Robot start values (x y direction) with spaces between.");
 
             while (robot == null && inputCount <= MAXIMUM_BAD_INPUT_DEFAULT)
             {
@@ -135,11 +135,11 @@ namespace RoboSimulator.ConsoleApp
                     Console.WriteLine(resultMessage);
                     LogInfo($"Invalid command input '{input}' entered.{resultMessage}");
                 }
-                
+
                 ++inputCount;
             }
-            
-            return validInput!;            
+
+            return validInput!;
         }
 
         private static CommandResultDto ExecuteRobotSimulation(IRobot robot, string commands)
@@ -151,22 +151,55 @@ namespace RoboSimulator.ConsoleApp
 
 
         private static void HandleSimulationResult(CommandResultDto result)
-        {            
+        {
             if (result.Success)
             {
                 Console.WriteLine(result.Message);
             }
             else
             {
-                Console.WriteLine($"ERROR: {result.Message}");
-                Environment.Exit(1);
-            }            
+                ExitAppWithError($"ERROR: {result.Message}");
+            }
         }
 
         private static string ReadInput()
         {
+            var inputBuilder = new StringBuilder();
+
             Console.WriteLine("Please enter your input:");
-            return Console.ReadLine() ?? "";
+
+            // CancelKeyPress event had race condition problems with simple Console.ReadKey(),
+            // so we're walking through read input more granular, inspecting each key press
+            while (true)
+            {
+                if (Console.KeyAvailable)
+                {
+                    var keyInfo = Console.ReadKey(intercept: true);
+
+                    if ((keyInfo.Modifiers == ConsoleModifiers.Control && keyInfo.Key == ConsoleKey.C) ||
+                        keyInfo.Key == ConsoleKey.Enter)
+                    {
+                        Console.WriteLine();
+                        break;
+                    }
+                    else if (keyInfo.Key == ConsoleKey.Backspace)
+                    {
+                        if (inputBuilder.Length > 0)
+                        {
+                            inputBuilder.Length--;
+
+                            // Move the cursor back, space overwrite and move back again
+                            Console.Write("\b \b");
+                        }
+                    }
+                    else if (char.IsLetterOrDigit(keyInfo.KeyChar) || keyInfo.Key == ConsoleKey.Spacebar)
+                    {
+                        inputBuilder.Append(keyInfo.KeyChar);
+                        Console.Write(keyInfo.KeyChar); // Echo the character
+                    }
+                }
+            }
+            return inputBuilder.ToString();
         }
 
         private static void LogInfo(string message)
@@ -174,27 +207,38 @@ namespace RoboSimulator.ConsoleApp
             _logger!.LogInformation("{Message}", message);
         }
 
-        private static void ExitAppWithError(string errorMessage)
+        private static void ExitApp(string message)
         {
-            Console.WriteLine(errorMessage);
-            _logger!.LogError(errorMessage);
-            Environment.Exit(1);
+            var exitCode = 0;
+            var exitMessage = $"Exit Code: {exitCode}.";
+
+            Console.WriteLine($"\n{message}\n{exitMessage}");
+
+            _logger!.LogInformation("{Message}", message);
+            _logger!.LogInformation("{Message}", exitMessage);
+
+            Environment.Exit(exitCode);
         }
 
-        private static void ExitAppWithException(string errorMessage, Exception ex)
+        private static void ExitAppWithError(string errorMessage, Exception? ex = null)
         {
-            Console.WriteLine(errorMessage);
-            _logger!.LogError(ex, errorMessage);            
-            Environment.Exit(1);
+            int exitCode = ex != null ? 1 : 2;
+            var exitMessage = $"Exit Code: {exitCode}. ";
+
+            Console.WriteLine($"\n{errorMessage}\n{exitMessage}");
+
+            _logger!.LogError(ex, "{Message}", errorMessage);
+            _logger!.LogInformation("{Message}", exitMessage);
+
+            Environment.Exit(exitCode);
         }
+
 
         protected static void OnExit(object sender, ConsoleCancelEventArgs args)
         {
             args.Cancel = true;
-            var message = "RoboSimulator.ConsoleApp exit...User pressed Ctrl+C.";
-            Console.WriteLine(message);
-            _logger!.LogError(message);            
-            Environment.Exit(0);
+            ExitApp("User pressed Ctrl+C to exit.");
+
         }
     }
 }
